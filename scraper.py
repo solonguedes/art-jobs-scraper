@@ -15,7 +15,9 @@ def parse_listings (html: str) -> list:
     listings = soup.find_all("li", class_="new-listing-container")
     return listings
 
+
 def extract_job(listing: Tag) -> dict:
+    """Parses title, company, location and link"""
     job_title = listing.find("span", class_="new-listing__header__title__text")
     if not job_title:
         return None
@@ -40,20 +42,25 @@ def extract_job(listing: Tag) -> dict:
         "link": full_url.strip()
     }
     return extracted_job
+
+def get_all_jobs(url:str) -> list:
+    html, _ = fetch_page(url)
+    listings = parse_listings(html)
+    final_listing = []
+    for listing in listings:
+        extraction = extract_job(listing)
+        if not extraction:
+            continue
+        final_listing.append(extraction)
+    return final_listing
+            
+    
         
 
 if __name__ == "__main__":
-    html, status = fetch_page("https://weworkremotely.com/categories/remote-design-jobs")
-    print("Status:", status)
-    print("HTML length:", len(html))
-    
-    listings = parse_listings(html)
-    print("Listings found:", len(listings))
-    
-    for listing in listings:
-        job = extract_job(listing)
-        if not job:
-            continue
+    jobs = get_all_jobs("https://weworkremotely.com/categories/remote-design-jobs")
+    print("Jobs found:", len(jobs))
+    for job in jobs:
         print(job)
             
             
