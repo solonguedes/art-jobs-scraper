@@ -1,5 +1,6 @@
 import requests
 from bs4 import BeautifulSoup, Tag
+import json
 
 
 def fetch_page(url:str) -> tuple:
@@ -44,6 +45,7 @@ def extract_job(listing: Tag) -> dict:
     return extracted_job
 
 def get_all_jobs(url:str) -> list:
+    """Fetches, parses and extracts all valid job listings from a page. Returns a list of job dictionaries."""
     html, _ = fetch_page(url)
     listings = parse_listings(html)
     final_listing = []
@@ -53,15 +55,33 @@ def get_all_jobs(url:str) -> list:
             continue
         final_listing.append(extraction)
     return final_listing
-            
+
+def save_jobs(jobs:list, file_path:str) -> None:
+    """Saves the list of jobs to a JSON file."""
+    with open(file_path, "w", encoding="utf-8") as file:
+        json.dump(jobs, file, ensure_ascii=False, indent=2)  
+                
+                
+def load_jobs(file_path:str) -> list:
+    """Loads the list of jobs from a JSON file. Returns an empty list if the file doesn't exist."""
+    try:
+        with open(file_path,"r", encoding="utf-8") as file:
+            job_list = json.load(file)
+            return job_list
+    except FileNotFoundError:
+        return []
+                     
     
         
-
 if __name__ == "__main__":
     jobs = get_all_jobs("https://weworkremotely.com/categories/remote-design-jobs")
     print("Jobs found:", len(jobs))
-    for job in jobs:
-        print(job)
+    
+    save_jobs(jobs, "jobs.json")
+    print("Jobs saved!")
+
+    reloaded_jobs = load_jobs("jobs.json")
+    print("Jobs reloaded:", len(reloaded_jobs))
             
             
     
